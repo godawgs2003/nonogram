@@ -144,3 +144,62 @@ header {
     color: white;
     border-color: var(--fill-color);
 }
+
+/* --- Mobile Responsive Scaling Override --- */
+@media (max-width: 600px) {
+    :root {
+        /* Scale down cells from 32px to 18px so 15 columns fit comfortably */
+        --cell-size: 18px;
+    }
+
+    .game-container {
+        padding: 8px;
+        box-shadow: none; /* Strip deep margins to maximize screen real estate */
+    }
+
+    h1 {
+        font-size: 20px;
+        margin: 5px 0;
+    }
+
+    /* Shrink wrapper columns: 45px for left clues, remaining space for grid */
+    .nonogram-wrapper {
+        grid-template-columns: 45px calc(15 * var(--cell-size));
+        grid-template-rows: 45px calc(15 * var(--cell-size));
+        justify-content: center;
+    }
+
+    .corner-spacer {
+        /* Matches new header dimensions */
+    }
+
+    /* Adjust left row clue box text alignment and sizing */
+    .row-clue-box {
+        font-size: 9px;
+        padding-right: 3px;
+        gap: 2px;
+    }
+
+    /* Adjust top column clue box text alignment and sizing */
+    .col-clue-box {
+        font-size: 9px;
+        padding-bottom: 2px;
+        gap: 1px;
+    }
+
+    /* Shrink the inner '✖' icon slightly to fit the new tighter cells */
+    .cell.marked-x::before {
+        font-size: 10px;
+    }
+
+    /* Optimize button padding for mobile thumb taps */
+    .controls-container {
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .tool-btn, .action-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Logic - 15x15 Nonogram</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <header>
+            <h1>Nonogram Puzzle</h1>
+            <div id="gameMeta">Difficulty: <span id="difficultyTag">Normal</span></div>
+        </header>
+
+        <div class="nonogram-wrapper">
+            <!-- Top spacer for the top-left corner intersection -->
+            <div class="corner-spacer"></div>
+
+            <!-- Container where column headers (top clues) will be generated -->
+            <div id="colHeaders" class="col-headers"></div>
+
+            <!-- Container where row headers (left clues) will be generated -->
+            <div id="rowHeaders" class="row-headers"></div>
+
+            <!-- Main 15x15 Interactive Board Grid -->
+            <div id="board" class="board-grid"></div>
+        </div>
+
+        <!-- Controls matching the tool setup from image.png -->
+        <div class="controls-container">
+            <button id="fillToolBtn" class="tool-btn active-tool" data-tool="fill">
+                <span class="square-icon">■</span> Fill
+            </button>
+            <button id="xToolBtn" class="tool-btn" data-tool="x">
+                <span class="x-icon">✖</span> Mark X
+            </button>
+            <button id="clearBtn" class="action-btn">Reset Grid</button>
+        </div>
+    </div>
+
+    <script type="module" href="puzzles.js"></script>
+    <script type="module" src="game.js"></script>
+</body>
+</html>

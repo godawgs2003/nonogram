@@ -148,58 +148,83 @@ header {
 /* --- Mobile Responsive Scaling Override --- */
 @media (max-width: 600px) {
     :root {
-        /* Scale down cells from 32px to 18px so 15 columns fit comfortably */
-        --cell-size: 18px;
+        /* Drop cell size from 18px to 16px to guarantee zero right-side clip */
+        --cell-size: 16px;
     }
 
     .game-container {
-        padding: 8px;
-        box-shadow: none; /* Strip deep margins to maximize screen real estate */
+        padding: 10px;
+        box-shadow: none;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     h1 {
-        font-size: 20px;
-        margin: 5px 0;
+        font-size: 18px;
+        margin: 5px 0 2px 0;
+    }
+    
+    #gameMeta {
+        font-size: 13px;
+        margin-bottom: 8px;
     }
 
-    /* Shrink wrapper columns: 45px for left clues, remaining space for grid */
+    /* Adjusted dimensions for the grid components */
     .nonogram-wrapper {
-        grid-template-columns: 45px calc(15 * var(--cell-size));
-        grid-template-rows: 45px calc(15 * var(--cell-size));
+        grid-template-columns: 55px calc(15 * var(--cell-size));
+        grid-template-rows: 55px calc(15 * var(--cell-size));
         justify-content: center;
     }
 
+    /* Fix the top-left intersection box size */
     .corner-spacer {
-        /* Matches new header dimensions */
+        width: 55px;
+        height: 55px;
     }
 
-    /* Adjust left row clue box text alignment and sizing */
-    .row-clue-box {
-        font-size: 9px;
-        padding-right: 3px;
-        gap: 2px;
+    /* Fix column clue boxes */
+    .col-headers {
+        height: 55px;
     }
-
-    /* Adjust top column clue box text alignment and sizing */
     .col-clue-box {
         font-size: 9px;
         padding-bottom: 2px;
-        gap: 1px;
+        gap: 0px;
     }
 
-    /* Shrink the inner '✖' icon slightly to fit the new tighter cells */
+    /* FIX: Force left row clue sequences to display side-by-side cleanly */
+    .row-headers {
+        width: 55px;
+    }
+    .row-clue-box {
+        display: flex;
+        flex-direction: row; /* Layout clues horizontally */
+        justify-content: flex-end; /* Keep them snug against the board */
+        align-items: center;
+        font-size: 9px;
+        padding-right: 4px;
+        gap: 4px; /* Distinct gap between numbers so they read cleanly */
+        box-sizing: border-box;
+    }
+
+    /* Shrink cross mark size slightly to fit the 16px cells */
     .cell.marked-x::before {
-        font-size: 10px;
+        font-size: 9px;
     }
 
-    /* Optimize button padding for mobile thumb taps */
+    /* Layout controls adjustment */
     .controls-container {
-        gap: 8px;
-        margin-top: 12px;
+        gap: 6px;
+        margin-top: 15px;
+        width: 100%;
+        justify-content: center;
     }
 
     .tool-btn, .action-btn {
-        padding: 8px 12px;
+        padding: 8px 10px;
         font-size: 12px;
+        flex: 1; /* Distribute buttons evenly across the screen width */
+        max-width: 100px;
+        text-align: center;
     }
 }

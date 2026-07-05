@@ -160,11 +160,13 @@ header {
     }
 
     .game-container {
-        /* Reduce side padding from 20px to 6px to widen the layout */
-        padding: 15px 6px; 
+        /* Zero out horizontal padding and expand to full width */
+        padding: 15px 0px; 
         box-shadow: none;
-        width: 100%;
+        width: 100vw;
+        max-width: 100%;
         box-sizing: border-box;
+        border-radius: 0;
     }
 
     h1 {
@@ -195,6 +197,7 @@ header {
     .col-headers {
         height: 75px;
         box-sizing: border-box;
+        border-right: 2px solid var(--thick-border-color);
     }
     
     .col-clue-box {
@@ -218,6 +221,14 @@ header {
         padding-right: 4px;
         gap: 3px;
         box-sizing: border-box;
+    }
+
+    /* Force Far-Right and Absolute-Bottom Outer Edge Borders to Be Thick */
+    .board-grid > div:nth-child(15n) {
+        border-right: 2px solid var(--thick-border-color) !important;
+    }
+    .board-grid > div:nth-child(n+211):nth-child(-n+225) {
+        border-bottom: 2px solid var(--thick-border-color) !important;
     }
 
     .cell.marked-x::before {

@@ -49,7 +49,7 @@ header {
 }
 
 /* 2. Header Clue Regions */
-.col-headers {
+.col-headers, #colHeaders {
     display: grid;
     grid-template-columns: repeat(15, var(--cell-size));
     background: #eef1f6;
@@ -78,7 +78,7 @@ header {
     border-right: none;
 }
 
-.row-headers {
+.row-headers, #rowHeaders {
     display: grid;
     grid-template-rows: repeat(15, var(--cell-size));
     background: #eef1f6;
@@ -99,15 +99,17 @@ header {
     border-bottom: 1px solid var(--grid-border-color);
     box-sizing: border-box;
 }
-.row-headers > div:nth-child(5n):not(:last-child) {
+.row-headers > div:nth-child(5n):not(:last-child),
+#rowHeaders > div:nth-child(5n):not(:last-child) {
     border-bottom: 2px solid var(--thick-border-color);
 }
-.row-headers > div:last-child {
+.row-headers > div:last-child,
+#rowHeaders > div:last-child {
     border-bottom: none;
 }
 
 /* 3. Core Interactive Board Grid */
-.board-grid {
+.board-grid, #board {
     display: grid;
     grid-template-columns: repeat(15, var(--cell-size));
     grid-template-rows: repeat(15, var(--cell-size));
@@ -139,10 +141,13 @@ header {
     border-right: none; 
 }
 .board-grid > div:nth-child(n+61):nth-child(-n+75),
-.board-grid > div:nth-child(n+136):nth-child(-n+150) {
+#board > div:nth-child(n+61):nth-child(-n+75),
+.board-grid > div:nth-child(n+136):nth-child(-n+150),
+#board > div:nth-child(n+136):nth-child(-n+150) {
     border-bottom: 2px solid var(--thick-border-color);
 }
-.board-grid > div:nth-child(n+211):nth-child(-n+225) {
+.board-grid > div:nth-child(n+211):nth-child(-n+225),
+#board > div:nth-child(n+211):nth-child(-n+225) {
     border-bottom: none;
 }
 

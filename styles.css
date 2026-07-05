@@ -181,6 +181,14 @@ header {
     border-color: var(--fill-color);
 }
 
+/* Fade out clues that the user clicks/marks as complete */
+.col-clue-box.clue-done,
+.row-clue-box.clue-done {
+    opacity: 0.4;
+    text-decoration: line-through; /* Optional strike-through look */
+    transition: opacity 0.2s ease;
+}
+
 /* --- 4. PERFECT MOBILE RESPONSIVE OVERRIDE --- */
 @media (max-width: 600px) {
     :root {

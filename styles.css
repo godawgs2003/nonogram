@@ -89,9 +89,10 @@ header {
     display: grid;
     grid-template-columns: repeat(15, var(--cell-size));
     grid-template-rows: repeat(15, var(--cell-size));
-    /* Enclose the bottom/right of the main board canvas */
-    border-right: 2px solid var(--thick-border-color);
-    border-bottom: 2px solid var(--thick-border-color);
+    box-sizing: border-box;
+    /* Create a uniform, thick outer border frame around the entire grid */
+    outline: 2px solid var(--thick-border-color);
+    outline-offset: -1px; /* Pulls the border inward slightly so it doesn't clip */
 }
 
 .cell {
@@ -223,12 +224,12 @@ header {
         box-sizing: border-box;
     }
 
-    /* Force Far-Right and Absolute-Bottom Outer Edge Borders to Be Thick */
-    .board-grid > div:nth-child(15n) {
-        border-right: 2px solid var(--thick-border-color) !important;
-    }
-    .board-grid > div:nth-child(n+211):nth-child(-n+225) {
-        border-bottom: 2px solid var(--thick-border-color) !important;
+.board-grid {
+        box-sizing: border-box;
+        outline: 2px solid var(--thick-border-color);
+        /* Ensures the grid container leaves exactly enough room for its own thick borders */
+        margin-right: 2px; 
+        margin-bottom: 2px;
     }
 
     .cell.marked-x::before {

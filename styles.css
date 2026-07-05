@@ -226,10 +226,33 @@ header {
 
 .board-grid {
         box-sizing: border-box;
-        outline: 2px solid var(--thick-border-color);
-        /* Ensures the grid container leaves exactly enough room for its own thick borders */
+        /* Remove the outline completely */
+        outline: none; 
+        
+        /* Make the container background act as the thick frame and dividers */
+        background-color: var(--thick-border-color);
+        padding: 2px; /* This creates the bold outer border frame */
+        gap: 1px; /* This creates uniform inner grid lines */
+        
         margin-right: 2px; 
         margin-bottom: 2px;
+    }
+
+    /* Tweak the cell sizing so the new gap layout fits perfectly */
+    .cell {
+        width: 100%;
+        height: 100%;
+        border-right: none !important;
+        border-bottom: none !important;
+    }
+
+    /* Keep our 5-cell thick tracking dividers working with the new layout */
+    .board-grid > div:nth-child(5n):not(:nth-child(15n)) { 
+        margin-right: 1px; 
+    }
+    .board-grid > div:nth-child(n+61):nth-child(-n+75),
+    .board-grid > div:nth-child(n+136):nth-child(-n+150) {
+        margin-bottom: 1px;
     }
 
     .cell.marked-x::before {

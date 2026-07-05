@@ -28,12 +28,15 @@ header {
     margin-bottom: 15px;
 }
 
-/* 1. STRUCTURAL WRAPPER SETUP */
+/* 1. Structural Grid Wrapper */
 .nonogram-wrapper {
     display: grid;
-    grid-template-columns: 80px repeat(15, var(--cell-size));
-    grid-template-rows: 80px repeat(15, var(--cell-size));
+    grid-template-columns: 80px auto;
+    grid-template-rows: 80px auto;
     margin-bottom: 20px;
+    width: max-content;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .corner-spacer {
@@ -45,9 +48,15 @@ header {
     box-sizing: border-box;
 }
 
-/* 2. HEADER CLUE REGIONS */
+/* 2. Header Clue Regions */
 .col-headers {
-    display: contents; /* Seamless grid alignment */
+    display: grid;
+    grid-template-columns: repeat(15, var(--cell-size));
+    background: #eef1f6;
+    border-top: 2px solid var(--thick-border-color);
+    border-bottom: 2px solid var(--thick-border-color);
+    border-right: 2px solid var(--thick-border-color);
+    box-sizing: border-box;
 }
 
 .col-clue-box {
@@ -59,22 +68,24 @@ header {
     font-weight: bold;
     padding-bottom: 4px;
     gap: 2px;
-    background: #eef1f6;
-    border-top: 2px solid var(--thick-border-color);
-    border-bottom: 2px solid var(--thick-border-color);
     border-right: 1px solid var(--grid-border-color);
     box-sizing: border-box;
 }
-
-.col-clue-box:nth-child(5n) {
+.col-clue-box:nth-child(5n):not(:last-child) {
     border-right: 2px solid var(--thick-border-color);
 }
 .col-clue-box:last-child {
-    border-right: 2px solid var(--thick-border-color);
+    border-right: none;
 }
 
 .row-headers {
-    display: contents; /* Seamless grid alignment */
+    display: grid;
+    grid-template-rows: repeat(15, var(--cell-size));
+    background: #eef1f6;
+    border-left: 2px solid var(--thick-border-color);
+    border-right: 2px solid var(--thick-border-color);
+    border-bottom: 2px solid var(--thick-border-color);
+    box-sizing: border-box;
 }
 
 .row-clue-box {
@@ -85,23 +96,24 @@ header {
     font-weight: bold;
     padding-right: 6px;
     gap: 4px;
-    background: #eef1f6;
-    border-left: 2px solid var(--thick-border-color);
-    border-right: 2px solid var(--thick-border-color);
     border-bottom: 1px solid var(--grid-border-color);
     box-sizing: border-box;
 }
-
-.nonogram-wrapper > .row-clue-box:nth-of-type(5n) {
+.row-headers > div:nth-child(5n):not(:last-child) {
     border-bottom: 2px solid var(--thick-border-color);
 }
-.nonogram-wrapper > .row-clue-box:last-of-type {
-    border-bottom: 2px solid var(--thick-border-color);
+.row-headers > div:last-child {
+    border-bottom: none;
 }
 
-/* 3. CORE INTERACTIVE BOARD GRID */
+/* 3. Core Interactive Board Grid */
 .board-grid {
-    display: contents; /* Drops flat into parent grid for perfect alignment */
+    display: grid;
+    grid-template-columns: repeat(15, var(--cell-size));
+    grid-template-rows: repeat(15, var(--cell-size));
+    border-right: 2px solid var(--thick-border-color);
+    border-bottom: 2px solid var(--thick-border-color);
+    box-sizing: border-box;
 }
 
 .cell {
@@ -119,14 +131,19 @@ header {
     user-select: none;
 }
 
-/* Tracking Dividers & Edge Frames */
-.cell:nth-child(5n) { border-right: 2px solid var(--thick-border-color); }
-.cell:nth-child(15n) { border-right: 2px solid var(--thick-border-color); }
-
+/* Inner 5x5 Grid Tracking Lines */
+.cell:nth-child(5n):not(:nth-child(15n)) { 
+    border-right: 2px solid var(--thick-border-color); 
+}
+.cell:nth-child(15n) { 
+    border-right: none; 
+}
 .board-grid > div:nth-child(n+61):nth-child(-n+75),
-.board-grid > div:nth-child(n+136):nth-child(-n+150),
-.board-grid > div:nth-child(n+211):nth-child(-n+225) {
+.board-grid > div:nth-child(n+136):nth-child(-n+150) {
     border-bottom: 2px solid var(--thick-border-color);
+}
+.board-grid > div:nth-child(n+211):nth-child(-n+225) {
+    border-bottom: none;
 }
 
 /* Interactive States */
@@ -164,14 +181,14 @@ header {
     border-color: var(--fill-color);
 }
 
-/* --- 4. UNIFIED MOBILE RESPONSIVE OVERRIDE --- */
+/* --- 4. PERFECT MOBILE RESPONSIVE OVERRIDE --- */
 @media (max-width: 600px) {
     :root {
-        --cell-size: 18px; /* Perfectly fills mobile widths */
+        --cell-size: 18px; /* Perfectly scales down to fit standard phone screen width */
     }
 
     .game-container {
-        padding: 15px 0px; 
+        padding: 15px 4px; 
         box-shadow: none;
         width: 100vw;
         max-width: 100%;
@@ -190,9 +207,8 @@ header {
     }
 
     .nonogram-wrapper {
-        grid-template-columns: 50px repeat(15, var(--cell-size));
-        grid-template-rows: 75px repeat(15, var(--cell-size));
-        justify-content: center;
+        grid-template-columns: 55px auto;
+        grid-template-rows: 85px auto; /* More height so numbers never clip */
     }
 
     .col-clue-box {
@@ -210,10 +226,6 @@ header {
         gap: 3px;
     }
 
-    .cell {
-        font-size: 12px;
-    }
-
     .cell.marked-x::before {
         font-size: 10px;
     }
@@ -223,7 +235,7 @@ header {
         margin-top: 15px;
         width: 100%;
         justify-content: center;
-        padding: 0 8px;
+        padding: 0 4px;
         box-sizing: border-box;
     }
 

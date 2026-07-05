@@ -28,28 +28,26 @@ header {
     margin-bottom: 15px;
 }
 
-/* Structural layout combining Clues and Grid */
+/* 1. STRUCTURAL WRAPPER SETUP */
 .nonogram-wrapper {
     display: grid;
-    grid-template-columns: 80px calc(15 * var(--cell-size));
-    grid-template-rows: 80px calc(15 * var(--cell-size));
+    grid-template-columns: 80px repeat(15, var(--cell-size));
+    grid-template-rows: 80px repeat(15, var(--cell-size));
     margin-bottom: 20px;
 }
 
 .corner-spacer {
     background: #eef1f6;
+    border-top: 2px solid var(--thick-border-color);
+    border-left: 2px solid var(--thick-border-color);
     border-bottom: 2px solid var(--thick-border-color);
     border-right: 2px solid var(--thick-border-color);
+    box-sizing: border-box;
 }
 
-/* Header Clue Regions */
+/* 2. HEADER CLUE REGIONS */
 .col-headers {
-    display: grid;
-    grid-template-columns: repeat(15, var(--cell-size));
-    background: #eef1f6;
-    /* Enclose the top/left of the header track */
-    border-top: 2px solid var(--thick-border-color);
-    border-bottom: 2px solid var(--thick-border-color);
+    display: contents; /* Seamless grid alignment */
 }
 
 .col-clue-box {
@@ -61,16 +59,22 @@ header {
     font-weight: bold;
     padding-bottom: 4px;
     gap: 2px;
+    background: #eef1f6;
+    border-top: 2px solid var(--thick-border-color);
+    border-bottom: 2px solid var(--thick-border-color);
     border-right: 1px solid var(--grid-border-color);
+    box-sizing: border-box;
+}
+
+.col-clue-box:nth-child(5n) {
+    border-right: 2px solid var(--thick-border-color);
+}
+.col-clue-box:last-child {
+    border-right: 2px solid var(--thick-border-color);
 }
 
 .row-headers {
-    display: grid;
-    grid-template-rows: repeat(15, var(--cell-size));
-    background: #eef1f6;
-    /* Add the missing outer left border to the row clues */
-    border-left: 2px solid var(--thick-border-color);
-    border-right: 2px solid var(--thick-border-color);
+    display: contents; /* Seamless grid alignment */
 }
 
 .row-clue-box {
@@ -81,18 +85,23 @@ header {
     font-weight: bold;
     padding-right: 6px;
     gap: 4px;
+    background: #eef1f6;
+    border-left: 2px solid var(--thick-border-color);
+    border-right: 2px solid var(--thick-border-color);
     border-bottom: 1px solid var(--grid-border-color);
+    box-sizing: border-box;
 }
 
-/* The Core Interactive Board */
+.nonogram-wrapper > .row-clue-box:nth-of-type(5n) {
+    border-bottom: 2px solid var(--thick-border-color);
+}
+.nonogram-wrapper > .row-clue-box:last-of-type {
+    border-bottom: 2px solid var(--thick-border-color);
+}
+
+/* 3. CORE INTERACTIVE BOARD GRID */
 .board-grid {
-    display: grid;
-    grid-template-columns: repeat(15, var(--cell-size));
-    grid-template-rows: repeat(15, var(--cell-size));
-    box-sizing: border-box;
-    /* Create a uniform, thick outer border frame around the entire grid */
-    outline: 2px solid var(--thick-border-color);
-    outline-offset: -1px; /* Pulls the border inward slightly so it doesn't clip */
+    display: contents; /* Drops flat into parent grid for perfect alignment */
 }
 
 .cell {
@@ -110,11 +119,13 @@ header {
     user-select: none;
 }
 
-/* Thicker borders every 5 elements to help tracking */
+/* Tracking Dividers & Edge Frames */
 .cell:nth-child(5n) { border-right: 2px solid var(--thick-border-color); }
-.cell:nth-child(15n) { border-right: none; }
+.cell:nth-child(15n) { border-right: 2px solid var(--thick-border-color); }
+
 .board-grid > div:nth-child(n+61):nth-child(-n+75),
-.board-grid > div:nth-child(n+136):nth-child(-n+150) {
+.board-grid > div:nth-child(n+136):nth-child(-n+150),
+.board-grid > div:nth-child(n+211):nth-child(-n+225) {
     border-bottom: 2px solid var(--thick-border-color);
 }
 
@@ -153,15 +164,13 @@ header {
     border-color: var(--fill-color);
 }
 
-/* --- Mobile Responsive Scaling Override --- */
+/* --- 4. UNIFIED MOBILE RESPONSIVE OVERRIDE --- */
 @media (max-width: 600px) {
     :root {
-        /* Bump up slightly to maximize the layout size */
-        --cell-size: 18px;
+        --cell-size: 18px; /* Perfectly fills mobile widths */
     }
 
     .game-container {
-        /* Zero out horizontal padding and expand to full width */
         padding: 15px 0px; 
         box-shadow: none;
         width: 100vw;
@@ -180,75 +189,29 @@ header {
         margin-bottom: 6px;
     }
 
-    /* Recalculate dimensions for the 18px grid cells */
     .nonogram-wrapper {
-        grid-template-columns: 50px calc(15 * var(--cell-size));
-        grid-template-rows: 75px calc(15 * var(--cell-size));
+        grid-template-columns: 50px repeat(15, var(--cell-size));
+        grid-template-rows: 75px repeat(15, var(--cell-size));
         justify-content: center;
     }
 
-    .corner-spacer {
-        width: 50px;
-        height: 75px;
-        border-top: 2px solid var(--thick-border-color);
-        border-left: 2px solid var(--thick-border-color);
-        box-sizing: border-box;
-    }
-
-    .col-headers {
-        height: 75px;
-        box-sizing: border-box;
-        border-right: 2px solid var(--thick-border-color);
-    }
-    
     .col-clue-box {
         font-size: 9px;
         padding-bottom: 4px;
-        justify-content: flex-end;
         gap: 1px;
     }
 
-    .row-headers {
-        width: 50px;
-        box-sizing: border-box;
-    }
-    
     .row-clue-box {
-        display: flex;
         flex-direction: row;
         justify-content: flex-end;
         align-items: center;
         font-size: 9px;
         padding-right: 4px;
         gap: 3px;
-        box-sizing: border-box;
     }
 
-    .board-grid {
-        box-sizing: border-box;
-        outline: none; 
-        background-color: var(--thick-border-color);
-        padding: 2px; 
-        gap: 1px;
-        margin-right: 2px; 
-        margin-bottom: 2px;
-    }
-
-    /* FIX: Force mobile cells to auto-expand to fill the background gaps properly */
     .cell {
-        width: auto !important;
-        height: auto !important;
-        border-right: none !important;
-        border-bottom: none !important;
-    }
-
-    /* Keep our 5-cell thick tracking dividers working with the new layout */
-    .board-grid > div:nth-child(5n):not(:nth-child(15n)) { 
-        margin-right: 1px; 
-    }
-    .board-grid > div:nth-child(n+61):nth-child(-n+75),
-    .board-grid > div:nth-child(n+136):nth-child(-n+150) {
-        margin-bottom: 1px;
+        font-size: 12px;
     }
 
     .cell.marked-x::before {
@@ -260,10 +223,12 @@ header {
         margin-top: 15px;
         width: 100%;
         justify-content: center;
+        padding: 0 8px;
+        box-sizing: border-box;
     }
 
     .tool-btn, .action-btn {
-        padding: 8px 6px;
+        padding: 8px 4px;
         font-size: 12px;
         flex: 1;
         max-width: 105px;

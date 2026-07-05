@@ -47,6 +47,8 @@ header {
     display: grid;
     grid-template-columns: repeat(15, var(--cell-size));
     background: #eef1f6;
+    /* Enclose the top/left of the header track */
+    border-top: 2px solid var(--thick-border-color);
     border-bottom: 2px solid var(--thick-border-color);
 }
 
@@ -66,6 +68,8 @@ header {
     display: grid;
     grid-template-rows: repeat(15, var(--cell-size));
     background: #eef1f6;
+    /* Add the missing outer left border to the row clues */
+    border-left: 2px solid var(--thick-border-color);
     border-right: 2px solid var(--thick-border-color);
 }
 
@@ -85,9 +89,9 @@ header {
     display: grid;
     grid-template-columns: repeat(15, var(--cell-size));
     grid-template-rows: repeat(15, var(--cell-size));
-    /* Fix: Add a crisp outer frame border around the interactive canvas grid */
-    border-top: 2px solid var(--thick-border-color);
+    /* Enclose the bottom/right of the main board canvas */
     border-right: 2px solid var(--thick-border-color);
+    border-bottom: 2px solid var(--thick-border-color);
 }
 
 .cell {
@@ -151,12 +155,13 @@ header {
 /* --- Mobile Responsive Scaling Override --- */
 @media (max-width: 600px) {
     :root {
-        /* Drop cell size from 18px to 16px to guarantee zero right-side clip */
-        --cell-size: 16px;
+        /* Bump up slightly to maximize the layout size */
+        --cell-size: 18px;
     }
 
     .game-container {
-        padding: 10px;
+        /* Reduce side padding from 20px to 6px to widen the layout */
+        padding: 15px 6px; 
         box-shadow: none;
         width: 100%;
         box-sizing: border-box;
@@ -164,60 +169,61 @@ header {
 
     h1 {
         font-size: 18px;
-        margin: 5px 0 2px 0;
+        margin: 0px 0 2px 0;
     }
     
     #gameMeta {
         font-size: 13px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
-    /* Fix: Increase header tracking space from 55px to 75px to fit tall stacks */
+    /* Recalculate dimensions for the 18px grid cells */
     .nonogram-wrapper {
-        grid-template-columns: 55px calc(15 * var(--cell-size));
+        grid-template-columns: 50px calc(15 * var(--cell-size));
         grid-template-rows: 75px calc(15 * var(--cell-size));
         justify-content: center;
     }
 
-    /* Match the new 75px layout ceiling profile */
     .corner-spacer {
-        width: 55px;
+        width: 50px;
         height: 75px;
+        border-top: 2px solid var(--thick-border-color);
+        border-left: 2px solid var(--thick-border-color);
+        box-sizing: border-box;
     }
 
-    /* Allow the vertical box columns to use the complete 75px height height safely */
     .col-headers {
         height: 75px;
+        box-sizing: border-box;
     }
     
     .col-clue-box {
         font-size: 9px;
         padding-bottom: 4px;
-        justify-content: flex-end; /* Keep clues anchored neatly just above the grid cells */
+        justify-content: flex-end;
         gap: 1px;
     }
 
-    /* FIX: Force left row clue sequences to display side-by-side cleanly */
     .row-headers {
-        width: 55px;
+        width: 50px;
+        box-sizing: border-box;
     }
+    
     .row-clue-box {
         display: flex;
-        flex-direction: row; /* Layout clues horizontally */
-        justify-content: flex-end; /* Keep them snug against the board */
+        flex-direction: row;
+        justify-content: flex-end;
         align-items: center;
         font-size: 9px;
         padding-right: 4px;
-        gap: 4px; /* Distinct gap between numbers so they read cleanly */
+        gap: 3px;
         box-sizing: border-box;
     }
 
-    /* Shrink cross mark size slightly to fit the 16px cells */
     .cell.marked-x::before {
-        font-size: 9px;
+        font-size: 10px;
     }
 
-    /* Layout controls adjustment */
     .controls-container {
         gap: 6px;
         margin-top: 15px;
@@ -226,10 +232,10 @@ header {
     }
 
     .tool-btn, .action-btn {
-        padding: 8px 10px;
+        padding: 8px 6px;
         font-size: 12px;
-        flex: 1; /* Distribute buttons evenly across the screen width */
-        max-width: 100px;
+        flex: 1;
+        max-width: 105px;
         text-align: center;
     }
 }

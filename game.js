@@ -1,5 +1,5 @@
 // game.js
-import { nonogramLibrary } from './puzzles.js';
+import { rawNonogramLibrary, decompressPuzzle } from './puzzles.js';
 
 // DOM Elements
 const boardContainer = document.getElementById('board');
@@ -10,9 +10,12 @@ const xToolBtn = document.getElementById('xToolBtn');
 const clearBtn = document.getElementById('clearBtn');
 const introScreen = document.getElementById('introScreen');
 const startBtn = document.getElementById('startBtn');
+const difficultyTag = document.getElementById('difficultyTag');
 
 // Game State
-let currentPuzzle = nonogramLibrary.normal[0]; 
+let currentPuzzleIndex = 0;
+let currentPuzzle = rawNonogramLibrary[currentPuzzleIndex];
+let solutionGrid = []; // Will hold the decompressed 15x15 array
 let activeTool = 'fill'; 
 let playerGrid = Array(15).fill(null).map(() => Array(15).fill(0)); 
 
@@ -20,8 +23,33 @@ let playerGrid = Array(15).fill(null).map(() => Array(15).fill(0));
 let isDragging = false;
 let dragActionType = null; // 0 = clear, 1 = fill, 2 = X
 
+// LocalStorage Progress Tracker
+function getCompletedPuzzles() {
+    const completed = localStorage.getItem('nonogram_completed');
+    return completed ? JSON.parse(completed) : [];
+}
+
+function markPuzzleAsCompleted(puzzleId) {
+    const completed = getCompletedPuzzles();
+    if (!completed.includes(puzzleId)) {
+        completed.push(puzzleId);
+        localStorage.setItem('nonogram_completed', JSON.stringify(completed));
+    }
+    updatePuzzleSelectionUI(); // Refresh list indicators if you have a selection menu
+}
+
 // 1. Initialize Game Engine
 function initGame() {
+    // Decompress the target puzzle grid on load
+    solutionGrid = decompressPuzzle(currentPuzzle.compressedGrid);
+    
+    // Update visual metadata
+    if (difficultyTag) {
+        const completedList = getCompletedPuzzles();
+        const isDone = completedList.includes(currentPuzzle.id) ? " (Completed! ✓)" : "";
+        difficultyTag.innerText = `${currentPuzzle.difficulty}${isDone}`;
+    }
+
     generateClues();
     buildInteractiveGrid();
     setupToolControls();
@@ -38,11 +66,12 @@ if (startBtn && introScreen) {
 
 // 2. Compute Clue Tracks
 function generateClues() {
-    const solution = currentPuzzle.gridSolution;
+    colHeadersContainer.innerHTML = '';
+    rowHeadersContainer.innerHTML = '';
 
     // Generate Row Clues
     for (let r = 0; r < 15; r++) {
-        const rowClues = getClueSequence(solution[r]);
+        const rowClues = getClueSequence(solutionGrid[r]);
         const clueBox = document.createElement('div');
         clueBox.className = 'row-clue-box';
         clueBox.dataset.rowIndex = r;
@@ -75,7 +104,7 @@ function generateClues() {
     for (let c = 0; c < 15; c++) {
         const colArray = [];
         for (let r = 0; r < 15; r++) {
-            colArray.push(solution[r][c]);
+            colArray.push(solutionGrid[r][c]);
         }
         const colClues = getClueSequence(colArray);
         const clueBox = document.createElement('div');
@@ -151,7 +180,6 @@ function buildInteractiveGrid() {
 
             // --- MOBILE TOUCH EVENTS ---
             cell.addEventListener('touchstart', (e) => {
-                // Prevent browser scrolling while trying to draw
                 e.preventDefault(); 
                 isDragging = true;
                 setDragIntent(r, c);
@@ -162,16 +190,13 @@ function buildInteractiveGrid() {
         }
     }
 
-    // Capture dragging finger movements across the entire board surface
     boardContainer.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
         e.preventDefault();
 
-        // Target the coordinate placement of the finger
         const touch = e.touches[0];
         const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
 
-        // Verify if the element under the finger is a grid cell
         if (targetElement && targetElement.classList.contains('cell')) {
             const r = parseInt(targetElement.dataset.row);
             const c = parseInt(targetElement.dataset.col);
@@ -180,7 +205,6 @@ function buildInteractiveGrid() {
     }, { passive: false });
 }
 
-// Determines if the user is intending to draw paths, mark X's, or erase
 function setDragIntent(r, c) {
     if (activeTool === 'fill') {
         dragActionType = (playerGrid[r][c] === 1) ? 0 : 1;
@@ -189,7 +213,6 @@ function setDragIntent(r, c) {
     }
 }
 
-// Main cell editing filter applied via click or drag moves
 function executeCellModification(cellDom, r, c) {
     const currentVal = playerGrid[r][c];
 
@@ -216,7 +239,6 @@ function executeCellModification(cellDom, r, c) {
     checkVictoryState();
 }
 
-// Reset drag flags when click or touch interaction lifts anywhere
 function setupGlobalMouseListeners() {
     const stopDrag = () => {
         isDragging = false;
@@ -257,13 +279,11 @@ function setupToolControls() {
 
 // 5. Audits Clue Tracking Elements for Automated Gray-Out Effects
 function checkClueStatus() {
-    const solution = currentPuzzle.gridSolution;
-
     // Check Row matches
     for (let r = 0; r < 15; r++) {
         let isRowDone = true;
         for (let c = 0; c < 15; c++) {
-            if ((solution[r][c] === 1) !== (playerGrid[r][c] === 1)) {
+            if ((solutionGrid[r][c] === 1) !== (playerGrid[r][c] === 1)) {
                 isRowDone = false;
                 break;
             }
@@ -279,7 +299,7 @@ function checkClueStatus() {
     for (let c = 0; c < 15; c++) {
         let isColDone = true;
         for (let r = 0; r < 15; r++) {
-            if ((solution[r][c] === 1) !== (playerGrid[r][c] === 1)) {
+            if ((solutionGrid[r][c] === 1) !== (playerGrid[r][c] === 1)) {
                 isColDone = false;
                 break;
             }
@@ -293,13 +313,27 @@ function checkClueStatus() {
 }
 
 function checkVictoryState() {
-    const solution = currentPuzzle.gridSolution;
     for (let r = 0; r < 15; r++) {
         for (let c = 0; c < 15; c++) {
-            if ((solution[r][c] === 1) !== (playerGrid[r][c] === 1)) return;
+            if ((solutionGrid[r][c] === 1) !== (playerGrid[r][c] === 1)) return;
         }
     }
-    setTimeout(() => alert(`Congratulations! You solved the "${currentPuzzle.name}" puzzle! 🎉`), 100);
+    
+    // Win registered! Save to localStorage
+    markPuzzleAsCompleted(currentPuzzle.id);
+
+    setTimeout(() => {
+        alert(`Congratulations! You solved the "${currentPuzzle.name}" puzzle! 🎉`);
+    }, 100);
+}
+
+// Function to redraw elements if a puzzle list UI is ever added
+function updatePuzzleSelectionUI() {
+    if (difficultyTag) {
+        const completedList = getCompletedPuzzles();
+        const isDone = completedList.includes(currentPuzzle.id) ? " (Completed! ✓)" : "";
+        difficultyTag.innerText = `${currentPuzzle.difficulty}${isDone}`;
+    }
 }
 
 initGame();

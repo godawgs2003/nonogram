@@ -26,7 +26,7 @@ function initGame() {
     buildInteractiveGrid();
     setupToolControls();
     setupGlobalMouseListeners();
-    checkClueStatus(); // Establish initial gray-outs for empty clue lines if any exist
+    checkClueStatus(); 
 }
 
 // Handle Title Screen Dismissal
@@ -54,7 +54,6 @@ function generateClues() {
             clueBox.appendChild(span);
         });
 
-        // Click handler to X-out empty row squares
         clueBox.addEventListener('click', () => {
             clueBox.classList.toggle('clue-done');
             for (let c = 0; c < 15; c++) {
@@ -90,7 +89,6 @@ function generateClues() {
             clueBox.appendChild(span);
         });
 
-        // Click handler to X-out empty column squares
         clueBox.addEventListener('click', () => {
             clueBox.classList.toggle('clue-done');
             for (let r = 0; r < 15; r++) {
@@ -126,7 +124,7 @@ function getClueSequence(arr) {
     return sequence.length === 0 ? [0] : sequence;
 }
 
-// 3. Build Web Board Architecture with Drag Event Bindings
+// 3. Build Web Board Architecture with Touch & Drag Event Bindings
 function buildInteractiveGrid() {
     boardContainer.innerHTML = '';
     
@@ -137,29 +135,57 @@ function buildInteractiveGrid() {
             cell.dataset.row = r;
             cell.dataset.col = c;
             
-            // Mouse Down event fixes the action intent of the line drag
+            // --- DESKTOP MOUSE EVENTS ---
             cell.addEventListener('mousedown', (e) => {
                 e.preventDefault(); 
                 isDragging = true;
-                
-                if (activeTool === 'fill') {
-                    dragActionType = (playerGrid[r][c] === 1) ? 0 : 1;
-                } else if (activeTool === 'x') {
-                    dragActionType = (playerGrid[r][c] === 2) ? 0 : 2;
-                }
-                
+                setDragIntent(r, c);
                 executeCellModification(cell, r, c);
             });
 
-            // Running into adjacent blocks replicates the determined click action
             cell.addEventListener('mouseenter', () => {
                 if (isDragging) {
                     executeCellModification(cell, r, c);
                 }
             });
 
+            // --- MOBILE TOUCH EVENTS ---
+            cell.addEventListener('touchstart', (e) => {
+                // Prevent browser scrolling while trying to draw
+                e.preventDefault(); 
+                isDragging = true;
+                setDragIntent(r, c);
+                executeCellModification(cell, r, c);
+            }, { passive: false });
+
             boardContainer.appendChild(cell);
         }
+    }
+
+    // Capture dragging finger movements across the entire board surface
+    boardContainer.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        // Target the coordinate placement of the finger
+        const touch = e.touches[0];
+        const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        // Verify if the element under the finger is a grid cell
+        if (targetElement && targetElement.classList.contains('cell')) {
+            const r = parseInt(targetElement.dataset.row);
+            const c = parseInt(targetElement.dataset.col);
+            executeCellModification(targetElement, r, c);
+        }
+    }, { passive: false });
+}
+
+// Determines if the user is intending to draw paths, mark X's, or erase
+function setDragIntent(r, c) {
+    if (activeTool === 'fill') {
+        dragActionType = (playerGrid[r][c] === 1) ? 0 : 1;
+    } else if (activeTool === 'x') {
+        dragActionType = (playerGrid[r][c] === 2) ? 0 : 2;
     }
 }
 
@@ -168,20 +194,17 @@ function executeCellModification(cellDom, r, c) {
     const currentVal = playerGrid[r][c];
 
     if (dragActionType === 0) {
-        // Eraser state matches active selector context
         if ((activeTool === 'fill' && currentVal === 1) || (activeTool === 'x' && currentVal === 2)) {
             playerGrid[r][c] = 0;
             cellDom.classList.remove('filled', 'marked-x');
         }
     } else if (dragActionType === 1) {
-        // Add solid fill block configuration
         if (currentVal !== 1) {
             playerGrid[r][c] = 1;
             cellDom.classList.remove('marked-x');
             cellDom.classList.add('filled');
         }
     } else if (dragActionType === 2) {
-        // Add decorative check/x block configuration
         if (currentVal !== 2) {
             playerGrid[r][c] = 2;
             cellDom.classList.remove('filled');
@@ -193,12 +216,16 @@ function executeCellModification(cellDom, r, c) {
     checkVictoryState();
 }
 
-// Reset drag flags when user lifts click anywhere on display window
+// Reset drag flags when click or touch interaction lifts anywhere
 function setupGlobalMouseListeners() {
-    window.addEventListener('mouseup', () => {
+    const stopDrag = () => {
         isDragging = false;
         dragActionType = null;
-    });
+    };
+    
+    window.addEventListener('mouseup', stopDrag);
+    window.addEventListener('touchend', stopDrag);
+    window.addEventListener('touchcancel', stopDrag);
 }
 
 // 4. Interface Layout Control Bindings

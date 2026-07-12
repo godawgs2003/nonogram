@@ -9,19 +9,18 @@ const fillToolBtn = document.getElementById('fillToolBtn');
 const xToolBtn = document.getElementById('xToolBtn');
 const clearBtn = document.getElementById('clearBtn');
 const introScreen = document.getElementById('introScreen');
-const startBtn = document.getElementById('startBtn');
+const levelContainer = document.getElementById('levelContainer'); // New menu list wrapper
 const difficultyTag = document.getElementById('difficultyTag');
 
 // Game State
-let currentPuzzleIndex = 0;
-let currentPuzzle = rawNonogramLibrary[currentPuzzleIndex];
-let solutionGrid = []; // Will hold the decompressed 15x15 array
+let currentPuzzle = rawNonogramLibrary[0];
+let solutionGrid = []; 
 let activeTool = 'fill'; 
 let playerGrid = Array(15).fill(null).map(() => Array(15).fill(0)); 
 
 // Dragging State Trackers
 let isDragging = false;
-let dragActionType = null; // 0 = clear, 1 = fill, 2 = X
+let dragActionType = null; 
 
 // LocalStorage Progress Tracker
 function getCompletedPuzzles() {
@@ -35,33 +34,88 @@ function markPuzzleAsCompleted(puzzleId) {
         completed.push(puzzleId);
         localStorage.setItem('nonogram_completed', JSON.stringify(completed));
     }
-    updatePuzzleSelectionUI(); // Refresh list indicators if you have a selection menu
 }
 
 // 1. Initialize Game Engine
 function initGame() {
-    // Decompress the target puzzle grid on load
+    renderLevelSelect(); // Build list menus on engine start
+    setupToolControls();
+    setupGlobalMouseListeners();
+}
+
+// Generate the Level Menu UI
+function renderLevelSelect() {
+    if (!levelContainer) return;
+    levelContainer.innerHTML = ''; // Wipe menu clean
+    
+    const completedList = getCompletedPuzzles();
+
+    rawNonogramLibrary.forEach((puzzle) => {
+        const isDone = completedList.includes(puzzle.id);
+        
+        // Build Level Entry Row Item
+        const levelRow = document.createElement('button');
+        levelRow.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 12px 18px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: ${isDone ? '#e8f5e9' : '#ffffff'};
+            color: #2c3e50;
+            border: 1px solid ${isDone ? '#c8e6c9' : '#dcdde1'};
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.2s;
+        `;
+        
+        // Add hover/active state feedback natively via JS
+        levelRow.onmouseenter = () => levelRow.style.backgroundColor = isDone ? '#c8e6c9' : '#f5f7fa';
+        levelRow.onmouseleave = () => levelRow.style.backgroundColor = isDone ? '#e8f5e9' : '#ffffff';
+
+        // Set Inner content formatting labels
+        levelRow.innerHTML = `
+            <div>
+                <span style="display: block; font-size: 15px;">${puzzle.name}</span>
+                <span style="font-size: 11px; color: #7f8c8d; font-weight: normal;">Difficulty: ${puzzle.difficulty}</span>
+            </div>
+            <span style="font-size: 18px; color: #2e7d32;">${isDone ? '✓' : '➔'}</span>
+        `;
+
+        // Wire level selection action up
+        levelRow.addEventListener('click', () => {
+            loadSelectedPuzzle(puzzle);
+        });
+
+        levelContainer.appendChild(levelRow);
+    });
+}
+
+// Load chosen grid and close out the menu overlay panel
+function loadSelectedPuzzle(puzzle) {
+    currentPuzzle = puzzle;
     solutionGrid = decompressPuzzle(currentPuzzle.compressedGrid);
     
-    // Update visual metadata
+    // Reset core matrix layers back to blank states
+    playerGrid = Array(15).fill(null).map(() => Array(15).fill(0));
+
+    // Update Difficulty Header Label Text
     if (difficultyTag) {
         const completedList = getCompletedPuzzles();
         const isDone = completedList.includes(currentPuzzle.id) ? " (Completed! ✓)" : "";
         difficultyTag.innerText = `${currentPuzzle.difficulty}${isDone}`;
     }
 
+    // Render Canvas Layouts
     generateClues();
     buildInteractiveGrid();
-    setupToolControls();
-    setupGlobalMouseListeners();
     checkClueStatus(); 
-}
 
-// Handle Title Screen Dismissal
-if (startBtn && introScreen) {
-    startBtn.addEventListener('click', () => {
-        introScreen.style.display = 'none';
-    });
+    // Hide selection view modal screen
+    if (introScreen) introScreen.style.display = 'none';
 }
 
 // 2. Compute Clue Tracks
@@ -89,9 +143,7 @@ function generateClues() {
                 if (playerGrid[r][c] === 0) {
                     playerGrid[r][c] = 2; 
                     const cellDom = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-                    if (cellDom) {
-                        cellDom.classList.add('marked-x');
-                    }
+                    if (cellDom) cellDom.classList.add('marked-x');
                 }
             }
             checkVictoryState();
@@ -124,9 +176,7 @@ function generateClues() {
                 if (playerGrid[r][c] === 0) {
                     playerGrid[r][c] = 2; 
                     const cellDom = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-                    if (cellDom) {
-                        cellDom.classList.add('marked-x');
-                    }
+                    if (cellDom) cellDom.classList.add('marked-x');
                 }
             }
             checkVictoryState();
@@ -270,9 +320,7 @@ function setupToolControls() {
             document.querySelectorAll('.cell').forEach(cell => {
                 cell.className = 'cell';
             });
-            document.querySelectorAll('.col-clue-box, .row-clue-box').forEach(box => {
-                box.classList.remove('clue-done');
-            });
+            checkClueStatus(); // Reset header visual paths back to normal opacity
         }
     });
 }
@@ -319,21 +367,16 @@ function checkVictoryState() {
         }
     }
     
-    // Win registered! Save to localStorage
+    // Save completion flag state to localStorage
     markPuzzleAsCompleted(currentPuzzle.id);
 
     setTimeout(() => {
         alert(`Congratulations! You solved the "${currentPuzzle.name}" puzzle! 🎉`);
+        
+        // Re-render menu item tracking records and reopen selection overlay dashboard
+        renderLevelSelect();
+        if (introScreen) introScreen.style.display = 'flex';
     }, 100);
-}
-
-// Function to redraw elements if a puzzle list UI is ever added
-function updatePuzzleSelectionUI() {
-    if (difficultyTag) {
-        const completedList = getCompletedPuzzles();
-        const isDone = completedList.includes(currentPuzzle.id) ? " (Completed! ✓)" : "";
-        difficultyTag.innerText = `${currentPuzzle.difficulty}${isDone}`;
-    }
 }
 
 initGame();

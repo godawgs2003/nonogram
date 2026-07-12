@@ -8,12 +8,16 @@
 </head>
 <body>
 
-    <!-- Intro Title Screen Overlay -->
-    <div id="introScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f5f7fa; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; font-family: sans-serif;">
-        <h1 style="font-size: 36px; color: #2c3e50; margin-bottom: 10px;">Nonogram</h1>
-        <p style="font-size: 16px; color: #7f8c8d; margin-bottom: 25px;">Logic Grid Puzzle Edition</p>
-        <button id="startBtn" style="padding: 12px 30px; font-size: 16px; font-weight: bold; background-color: #2c3e50; color: white; border: none; border-radius: 6px; cursor: pointer;">Play Game</button>
+<!-- Intro / Level Select Screen Overlay -->
+<div id="introScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f5f7fa; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; font-family: sans-serif; box-sizing: border-box; padding: 20px;">
+    <h1 style="font-size: 36px; color: #2c3e50; margin-bottom: 5px;">Nonogram</h1>
+    <p style="font-size: 16px; color: #7f8c8d; margin-bottom: 20px;">Logic Grid Puzzle Edition</p>
+    
+    <!-- Dynamic Level Selection Grid Container -->
+    <div id="levelContainer" style="width: 100%; max-width: 500px; max-height: 60vh; overflow-y: auto; background: white; border: 1px solid #dcdde1; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; box-sizing: border-box;">
+        <!-- Level list items will be generated here by game.js -->
     </div>
+</div>
 
     <div class="game-container">
         <header>

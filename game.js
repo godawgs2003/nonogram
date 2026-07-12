@@ -8,17 +8,32 @@ const rowHeadersContainer = document.getElementById('rowHeaders');
 const fillToolBtn = document.getElementById('fillToolBtn');
 const xToolBtn = document.getElementById('xToolBtn');
 const clearBtn = document.getElementById('clearBtn');
+const introScreen = document.getElementById('introScreen');
+const startBtn = document.getElementById('startBtn');
 
 // Game State
 let currentPuzzle = nonogramLibrary.normal[0]; 
 let activeTool = 'fill'; 
 let playerGrid = Array(15).fill(null).map(() => Array(15).fill(0)); 
 
+// Dragging State Trackers
+let isDragging = false;
+let dragActionType = null; // 0 = clear, 1 = fill, 2 = X
+
 // 1. Initialize Game Engine
 function initGame() {
     generateClues();
     buildInteractiveGrid();
     setupToolControls();
+    setupGlobalMouseListeners();
+    checkClueStatus(); // Establish initial gray-outs for empty clue lines if any exist
+}
+
+// Handle Title Screen Dismissal
+if (startBtn && introScreen) {
+    startBtn.addEventListener('click', () => {
+        introScreen.style.display = 'none';
+    });
 }
 
 // 2. Compute Clue Tracks
@@ -30,6 +45,7 @@ function generateClues() {
         const rowClues = getClueSequence(solution[r]);
         const clueBox = document.createElement('div');
         clueBox.className = 'row-clue-box';
+        clueBox.dataset.rowIndex = r;
         clueBox.style.cursor = 'pointer';
         
         rowClues.forEach(clue => {
@@ -65,6 +81,7 @@ function generateClues() {
         const colClues = getClueSequence(colArray);
         const clueBox = document.createElement('div');
         clueBox.className = 'col-clue-box';
+        clueBox.dataset.colIndex = c;
         clueBox.style.cursor = 'pointer';
         
         colClues.forEach(clue => {
@@ -109,7 +126,7 @@ function getClueSequence(arr) {
     return sequence.length === 0 ? [0] : sequence;
 }
 
-// 3. Build Web Board Architecture
+// 3. Build Web Board Architecture with Drag Event Bindings
 function buildInteractiveGrid() {
     boardContainer.innerHTML = '';
     
@@ -119,37 +136,72 @@ function buildInteractiveGrid() {
             cell.className = 'cell';
             cell.dataset.row = r;
             cell.dataset.col = c;
-            cell.addEventListener('click', () => handleCellClick(cell, r, c));
+            
+            // Mouse Down event fixes the action intent of the line drag
+            cell.addEventListener('mousedown', (e) => {
+                e.preventDefault(); 
+                isDragging = true;
+                
+                if (activeTool === 'fill') {
+                    dragActionType = (playerGrid[r][c] === 1) ? 0 : 1;
+                } else if (activeTool === 'x') {
+                    dragActionType = (playerGrid[r][c] === 2) ? 0 : 2;
+                }
+                
+                executeCellModification(cell, r, c);
+            });
+
+            // Running into adjacent blocks replicates the determined click action
+            cell.addEventListener('mouseenter', () => {
+                if (isDragging) {
+                    executeCellModification(cell, r, c);
+                }
+            });
+
             boardContainer.appendChild(cell);
         }
     }
 }
 
-// 4. Handle Input Interactions
-function handleCellClick(cellDom, r, c) {
-    if (activeTool === 'fill') {
-        if (playerGrid[r][c] === 1) {
+// Main cell editing filter applied via click or drag moves
+function executeCellModification(cellDom, r, c) {
+    const currentVal = playerGrid[r][c];
+
+    if (dragActionType === 0) {
+        // Eraser state matches active selector context
+        if ((activeTool === 'fill' && currentVal === 1) || (activeTool === 'x' && currentVal === 2)) {
             playerGrid[r][c] = 0;
-            cellDom.classList.remove('filled');
-        } else {
+            cellDom.classList.remove('filled', 'marked-x');
+        }
+    } else if (dragActionType === 1) {
+        // Add solid fill block configuration
+        if (currentVal !== 1) {
             playerGrid[r][c] = 1;
             cellDom.classList.remove('marked-x');
             cellDom.classList.add('filled');
         }
-    } else if (activeTool === 'x') {
-        if (playerGrid[r][c] === 2) {
-            playerGrid[r][c] = 0;
-            cellDom.classList.remove('marked-x');
-        } else {
+    } else if (dragActionType === 2) {
+        // Add decorative check/x block configuration
+        if (currentVal !== 2) {
             playerGrid[r][c] = 2;
             cellDom.classList.remove('filled');
             cellDom.classList.add('marked-x');
         }
     }
+
+    checkClueStatus();
     checkVictoryState();
 }
 
-// 5. Interface Layout Control Bindings
+// Reset drag flags when user lifts click anywhere on display window
+function setupGlobalMouseListeners() {
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+        dragActionType = null;
+    });
+}
+
+// 4. Interface Layout Control Bindings
 function setupToolControls() {
     fillToolBtn.addEventListener('click', () => {
         activeTool = 'fill';
@@ -176,11 +228,48 @@ function setupToolControls() {
     });
 }
 
+// 5. Audits Clue Tracking Elements for Automated Gray-Out Effects
+function checkClueStatus() {
+    const solution = currentPuzzle.gridSolution;
+
+    // Check Row matches
+    for (let r = 0; r < 15; r++) {
+        let isRowDone = true;
+        for (let c = 0; c < 15; c++) {
+            if ((solution[r][c] === 1) !== (playerGrid[r][c] === 1)) {
+                isRowDone = false;
+                break;
+            }
+        }
+        const rowElement = document.querySelector(`.row-clue-box[data-row-index="${r}"]`);
+        if (rowElement) {
+            if (isRowDone) rowElement.classList.add('clue-done');
+            else rowElement.classList.remove('clue-done');
+        }
+    }
+
+    // Check Column matches
+    for (let c = 0; c < 15; c++) {
+        let isColDone = true;
+        for (let r = 0; r < 15; r++) {
+            if ((solution[r][c] === 1) !== (playerGrid[r][c] === 1)) {
+                isColDone = false;
+                break;
+            }
+        }
+        const colElement = document.querySelector(`.col-clue-box[data-col-index="${c}"]`);
+        if (colElement) {
+            if (isColDone) colElement.classList.add('clue-done');
+            else colElement.classList.remove('clue-done');
+        }
+    }
+}
+
 function checkVictoryState() {
     const solution = currentPuzzle.gridSolution;
     for (let r = 0; r < 15; r++) {
         for (let c = 0; c < 15; c++) {
-            if (solution[r][c] === 1 !== (playerGrid[r][c] === 1)) return;
+            if ((solution[r][c] === 1) !== (playerGrid[r][c] === 1)) return;
         }
     }
     setTimeout(() => alert(`Congratulations! You solved the "${currentPuzzle.name}" puzzle! 🎉`), 100);
